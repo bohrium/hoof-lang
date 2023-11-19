@@ -1,0 +1,136 @@
+--------  sss  ----------------------------------------------------------------
+
+-- asterisk * means IMPURE (doesn't mean pointer):
+x : *Int
+x = {
+  ! print("hi");
+  100
+}
+
+main : List@String -> *Int
+main =  \ ss {
+  ! x
+  ! x
+}
+
+--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--~~  namespaces  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-- structure:
+-- preamble
+--      export ...
+--      export ...
+--
+--      import ...
+--      import ...
+--
+-- body
+--      ...
+--      ...
+--      ...
+--      ...
+--      ...
+
+moo/goo/gai/pan
+
+--------  symbol-to-val (heterogeneous) dicts  --------------------------------
+-- values must be known at compile time
+-- e.g. destructors of product type, constructors of sum type
+
+moo ~> moo
+moo ~> moo
+
+want to be able to say either of the following (and for them to be equal):
+
+(maketuple
+  moo ~> "hi"
+  goo ~> 5
+)
+
+(maketuple
+  goo ~> 5
+  moo ~> "hi"
+)
+
+-- NOTE: `maketuple` must be saturated.
+-- QUESTION: does above violate our oath to hav parentheses mean just grouping?
+
+
+
+--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--~~  types~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+T is << Int Int Float *Int >>
+y : T
+
+-- structure maps (inclusion):
+y = ( _ _ _ x )
+y = x.( _ _ _ * ) -- <- hmm questionable use of asterisk
+
+-- universal map:
+ff :    (Int -> String) ->
+        (Int -> String) ->
+        (Float -> String) ->
+        (*Int -> String) ->
+        (T -> String)
+ff = \fn \fnn \ff \fin  \tt  (
+        tt.(case fn fnn ff fin)
+    )
+
+U is [[ Int Int Float *Int ]]
+z : U
+
+b : Int
+
+-- structure maps (projection):
+( _ b _ _ ) = z
+b = z.( _ * _ _ ) -- <- hmm questionable use of asterisk
+
+-- universal map:
+ff : (String -> Int) ->
+     (String -> Int) ->
+     (String -> Float) ->
+     (String -> *Int) ->
+     (String -> U)
+ff = \fn \fnn \ff \fin  \s  (
+        s.(make fn fnn ff fin)
+    )
+
+Zero is << >>
+Unit is [[ ]]
+
+-- universal map for zero is (remember, polymorphic):
+case : (Zero -> String)
+
+-- universal map for unit is (remember, polymorphic):
+make : (String -> Unit)
+
+-- also have special member:
+star : Unit
+
+-- builtin shorthand for evaluating at star:
+ff : Unit -> Int
+ee : Int
+ee = star.ff
+ee = ..ff
+
+-- builtin shorthand for maps from unit:
+zz : Int
+pp : Unit -> Int
+pp = \_ zz
+pp = `zz
+
+-- So we have isomorphisms:
+gg : X -> (Unit->X)
+ggrev : (Unit->X) -> X
+-- implemented like this:
+gg = \x \_ x
+gg = \x `x
+ggrev = \f star.f
+ggrev = \f ..f
+
+-- so this creates a tuple of type U:
+tt = star.(make (\_ 5) (\_ 6) (\_  -1e4) (\_ x))
+tt = ..(make `5 `6 `-1e4 `x)
+
+

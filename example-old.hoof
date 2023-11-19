@@ -1,0 +1,93 @@
+x : *Int        -- means IMPURE (doesn't mean pointer)
+x = {
+  ! print("hi");
+  100
+}
+
+-- <- sss
+
+--------
+
+-- QUESTION: mutability as case of impurity?
+-- ... so mutable var is really func : environ->value, environ implicitly
+--      changing?
+
+main : StringList -> *Int
+main =  \ sl {
+  *x
+}
+
+T is << Int Int Float *Int >>
+y : T
+
+-- structure maps (inclusion):
+y = ( _ _ _ x )
+y = x.( _ _ _ * ) -- <- hmm questionable use of asterisk
+
+-- universal map:
+ff :    (Int -> String) ->
+        (Int -> String) ->
+        (Float -> String) ->
+        (*Int -> String) ->
+        (T -> String)
+ff = \fn \fnn \ff \fin  \tt  (
+        tt.(case fn fnn ff fin)
+    )
+
+U is [[ Int Int Float *Int ]]
+z : U
+
+b : Int
+
+-- structure maps (projection):
+( _ b _ _ ) = z
+b = z.( _ * _ _ ) -- <- hmm questionable use of asterisk
+
+-- universal map:
+ff :    (String -> Int) ->
+        (String -> Int) ->
+        (String -> Float) ->
+        (String -> *Int) ->
+        (String -> U)
+ff = \fn \fnn \ff \fin  \s  (
+        s.(make fn fnn ff fin)
+    )
+
+Zero is << >>
+Unit is [[ ]]
+
+-- universal map for zero is (remember, polymorphic):
+case : (Zero -> String)
+
+-- universal map for unit is (remember, polymorphic):
+make : (String -> Unit)
+
+-- also have special member:
+star : Unit
+
+-- builtin shorthand for evaluating at star:
+ff : Unit -> Int
+ee : Int
+ee = star.ff
+ee = ..ff
+
+-- builtin shorthand for maps from unit:
+zz : Int
+pp : Unit -> Int
+pp = \_ zz
+pp = `zz
+
+-- So we have isomorphisms:
+gg:X -> (Unit->X)
+ggrev:(Unit->X) -> X
+-- implemented like this:
+gg = \x \_ x
+gg = \x `x
+ggrev = \ff star.x
+ggrev = \ff ..x
+
+-- so this creates a tuple of type U:
+tt = star.(make (\_ 5) (\_ 6) (\_  -1e4) (\_ x))
+tt = ..(make `5 `6 `-1e4 `x)
+
+
