@@ -3,15 +3,26 @@
 -- asterisk * means IMPURE (doesn't mean pointer):
 x : *Int
 x = {
-  ! print("hi");
+  ! print "hi";
   100
 }
 
 main : List@String -> *Int
 main =  \ ss {
-  ! x
+  ! x;
   ! x
 }
+
+-- think of ! as polymorphic of type (*T) -> T
+-- or as a ( ExecutionToken -> --- ) monad, so have eval:*((*T)->T), with
+-- `spending` of outer token automatically filled in by compiler
+
+--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--~~  question: duality between ExecutionTokens and Exceptions??  ~~~~~~~~~~~~~
+
+-- a map X -> Y with side-effects and exceptions is secretly
+-- a map (a x X) -> (Y + b) ... think: SEQUENTs
+-- Temptation is to set a=1, b=0...
 
 --~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --~~  namespaces  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -58,21 +69,22 @@ want to be able to say either of the following (and for them to be equal):
 
 
 --~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
---~~  types~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--~~  types  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 T is << Int Int Float *Int >>
 y : T
 
 -- structure maps (inclusion):
+-- TODO: figure out what this even means!
 y = ( _ _ _ x )
-y = x.( _ _ _ * ) -- <- hmm questionable use of asterisk
+x.( _ _ _ * ) = y -- <- hmm questionable use of asterisk
 
 -- universal map:
-ff :    (Int -> String) ->
-        (Int -> String) ->
-        (Float -> String) ->
-        (*Int -> String) ->
-        (T -> String)
+ff : (Int -> String) ->
+     (Int -> String) ->
+     (Float -> String) ->
+     (*Int -> String) ->
+     (T -> String)
 ff = \fn \fnn \ff \fin  \tt  (
         tt.(case fn fnn ff fin)
     )
@@ -83,17 +95,17 @@ z : U
 b : Int
 
 -- structure maps (projection):
-( _ b _ _ ) = z
+( _ b _ _ ) = z -- <- hmmmm mutability suspicious needs more thought (lenses)
 b = z.( _ * _ _ ) -- <- hmm questionable use of asterisk
 
 -- universal map:
 ff : (String -> Int) ->
-     (String -> Int) ->
-     (String -> Float) ->
-     (String -> *Int) ->
-     (String -> U)
+    (String -> Int) ->
+    (String -> Float) ->
+    (String -> *Int) ->
+    (String -> U)
 ff = \fn \fnn \ff \fin  \s  (
-        s.(make fn fnn ff fin)
+       s.(make fn fnn ff fin)
     )
 
 Zero is << >>
@@ -121,8 +133,8 @@ pp = \_ zz
 pp = `zz
 
 -- So we have isomorphisms:
-gg : X -> (Unit->X)
-ggrev : (Unit->X) -> X
+gg : X -> (Unit -> X)
+ggrev : (Unit -> X) -> X
 -- implemented like this:
 gg = \x \_ x
 gg = \x `x

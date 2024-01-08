@@ -1,6 +1,6 @@
 " Vim syntax file
 " Maintainer:       samtenka
-" Latest Revision:  2023-11
+" Latest Revision:  2023-12
 
 if exists("b:current_syntax")
   finish
@@ -24,16 +24,19 @@ syntax match hoofTerm "\([^-_a-zA-Z0-9]\)\@<=[a-z][a-zA-Z0-9]\+"
 hi hoofTerm ctermfg=White
 
 
-" SAM TENKA: color symbols
+" SAM TENKA: symbols
 syntax match hoofSymb "\\"
 syntax match hoofSymb "="
 syntax match hoofSymb "\."
 syntax match hoofSymb ":"
 syntax match hoofSymb "{"
 syntax match hoofSymb "}"
-syntax match hoofSymb "!"
 syntax match hoofSymb "_"
 hi hoofSymb ctermfg=Gray
+
+" SAM TENKA: effect symbols
+syntax match hoofESymb "!"
+hi hoofESymb ctermbg=DarkGreen
 
 " SAM TENKA: type system symbols
 syntax match hoofTSymb "@"
@@ -70,8 +73,8 @@ syn match cLabelComment "-- <- .*"
 syn match cLabelComment "--[ ]\?.*:$"
 hi cLabelComment ctermfg=Green
 
-syn match cHeadingComment "--===.*==="
-syn match cHeadingComment "--\~\~\~.*\~\~\~"
+syn match cHeadingComment "--==.*=="
+syn match cHeadingComment "--\~\~.*\~\~"
 syn match cHeadingComment "---.*---"
 hi cHeadingComment ctermfg=Cyan
 
