@@ -153,7 +153,7 @@ inline
 ELT* _POP_UNSAFE(LTN* list)
 {
     --(list->len);
-    return &(list->data[list->len-1]);
+    return &(list->data[list->len]);
 }
 
 inline

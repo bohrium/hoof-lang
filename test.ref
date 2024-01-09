@@ -61,18 +61,18 @@ getref idx 14 val NULL ... len 12 cap 17
 getref idx 15 val NULL ... len 12 cap 17
 getref idx 16 val NULL ... len 12 cap 17
 getref idx 17 val NULL ... len 12 cap 17
-pop val 21 ... len 11 cap 17
-pop val 19 ... len 10 cap 17
-pop val 17 ... len 9 cap 17
-pop val 15 ... len 8 cap 17
-pop val 13 ... len 7 cap 17
-pop val 11 ... len 6 cap 17
-pop val 9 ... len 5 cap 17
-pop val 7 ... len 4 cap 17
-pop val 5 ... len 3 cap 17
-pop val 3 ... len 2 cap 17
-pop val 1 ... len 1 cap 17
-pop val 0 ... len 0 cap 17
+pop val 23 ... len 11 cap 17
+pop val 21 ... len 10 cap 17
+pop val 19 ... len 9 cap 17
+pop val 17 ... len 8 cap 17
+pop val 15 ... len 7 cap 17
+pop val 13 ... len 6 cap 17
+pop val 11 ... len 5 cap 17
+pop val 9 ... len 4 cap 17
+pop val 7 ... len 3 cap 17
+pop val 5 ... len 2 cap 17
+pop val 3 ... len 1 cap 17
+pop val 1 ... len 0 cap 17
 
 #UNSAFE CORRECTNESS
 top ... is empty! ... len 0 cap 6
@@ -111,18 +111,12 @@ getref idx 2 val 5 ... len 6 cap 11
 getref idx 3 val 7 ... len 6 cap 11
 getref idx 4 val 9 ... len 6 cap 11
 getref idx 5 val 11 ... len 6 cap 11
-getref idx 6 val 13 ... len 6 cap 11
-getref idx 7 val 15 ... len 6 cap 11
-getref idx 8 val 17 ... len 6 cap 11
-getref idx 9 val 19 ... len 6 cap 11
-getref idx 10 val 21 ... len 6 cap 11
-getref idx 11 val 23 ... len 6 cap 11
-pop val 9 ... len 5 cap 11
-pop val 7 ... len 4 cap 11
-pop val 5 ... len 3 cap 11
-pop val 3 ... len 2 cap 11
-pop val 1 ... len 1 cap 11
-pop val 0 ... len 0 cap 11
+pop val 11 ... len 5 cap 11
+pop val 9 ... len 4 cap 11
+pop val 7 ... len 3 cap 11
+pop val 5 ... len 2 cap 11
+pop val 3 ... len 1 cap 11
+pop val 1 ... len 0 cap 11
 pop ... is empty! ... len 0 cap 11
 pop ... is empty! ... len 0 cap 11
 pop ... is empty! ... len 0 cap 11
@@ -130,17 +124,20 @@ pop ... is empty! ... len 0 cap 11
 pop ... is empty! ... len 0 cap 11
 pop ... is empty! ... len 0 cap 11
 
+#POLY CORRECTNESS
+sum is 8258350
+
 #UNSAFE SPEED
-[[TIME]] pushing 	 took 0.044 seconds
-[[TIME]] getting 	 took 0.039 seconds
+[[TIME]] pushing 	 took 0.030 seconds
+[[TIME]] getting 	 took 0.027 seconds
 sum is 256447232
 
 #SAFE SPEED
-[[TIME]] pushing 	 took 0.075 seconds
-[[TIME]] getting 	 took 0.084 seconds
+[[TIME]] pushing 	 took 0.038 seconds
+[[TIME]] getting 	 took 0.027 seconds
 sum is 256447232
 
 #RESIZE SPEED
-[[TIME]] resizing 	 took 0.186 seconds
+[[TIME]] resizing 	 took 0.026 seconds
 
 bye!

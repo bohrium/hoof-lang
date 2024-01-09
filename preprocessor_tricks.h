@@ -1,6 +1,9 @@
 #ifndef PP_TRICKS
 #define PP_TRICKS
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~  PP Variable Magic  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 // to print value of a PreProc variable (named FOO_BAR, say):
 //
 //      #pragma message(STRING( FOO_BAR ))
@@ -15,6 +18,13 @@
 #define CONCAT_INNER(X,Y) X ## Y
 #define CONCAT(X,Y) CONCAT_INNER(X,Y)
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~  Idiom Shorthands  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define FOR(VAR, START, END) for (int VAR=START; VAR!=END; ++VAR)
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~  Timeing Helpers  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #include <time.h>
 
