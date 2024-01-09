@@ -7,12 +7,13 @@
 #define LMP LIST_METHOD_PREFIX
 #define LTN LIST_TYPE_NAME
 
-#define _INIT        CONCAT(LMP, _init)
-#define _FREE        CONCAT(LMP, _free)
-#define _RESIZE      CONCAT(LMP, _resize)
-#define _LEN         CONCAT(LMP, _len)
-#define _IS_EMPTY    CONCAT(LMP, _is_empty)
-#define _IS_FULL     CONCAT(LMP, _is_full)
+#define _INIT           CONCAT(LMP, _init)
+#define _FREE           CONCAT(LMP, _free)
+#define _RESIZE         CONCAT(LMP, _resize)
+#define __UNSAFE_COPY   CONCAT(LMP, __unsafe_copy)
+#define _LEN            CONCAT(LMP, _len)
+#define _IS_EMPTY       CONCAT(LMP, _is_empty)
+#define _IS_FULL        CONCAT(LMP, _is_full)
 
 #define _PUSH_UNSAFE    CONCAT(LMP, _push_unsafe)
 #define _POP_UNSAFE     CONCAT(LMP, _pop_unsafe)
@@ -93,11 +94,30 @@ void _FREE(LTN* list)
     *list = (LTN){NULL, 0, 0};
 }
 
+// declare before define because inline
+void __UNSAFE_COPY(ELT const* restrict src, ELT const* src_end, ELT*restrict dst);
+
+inline
+void __UNSAFE_COPY(ELT const* restrict src, ELT const* src_end, ELT*restrict dst)
+{
+    while (src != src_end) { *(dst++) = *(src++); }
+}
+
+
 void _RESIZE(LTN* list, int cap)
 {
     if ( ! (list->len < cap) ) { return; }
     ELT* data = malloc(sizeof(ELT)*cap);
-    for (int i = 0; i != list->len; ++i) { data[i] = list->data[i]; }
+    { /* COPY */
+#if 0
+        for (int i = 0; i != list->len; ++i) { data[i] = list->data[i]; }
+#else
+        // the `restrict` keywords speeds the copy up by about 20% (in our
+        // tests that pre-stretch-out the malloc part) but one expects that in
+        // real life, the malloc can often overwhelm.
+        __UNSAFE_COPY(list->data, list->data + list->len, data);
+#endif
+    }
     free(list->data);
     *list = (LTN){data, list->len, cap};
 }

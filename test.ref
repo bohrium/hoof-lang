@@ -136,8 +136,11 @@ pop ... is empty! ... len 0 cap 11
 sum is 256447232
 
 #SAFE SPEED
-[[TIME]] pushing 	 took 0.074 seconds
-[[TIME]] getting 	 took 0.083 seconds
+[[TIME]] pushing 	 took 0.075 seconds
+[[TIME]] getting 	 took 0.084 seconds
 sum is 256447232
+
+#RESIZE SPEED
+[[TIME]] resizing 	 took 0.186 seconds
 
 bye!

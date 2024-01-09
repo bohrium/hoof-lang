@@ -40,6 +40,8 @@ void test_unsafe_operations();
 void test_push_speed( void (*my_pusher)(IntList*, int) );
 void test_getref_speed( int* (*my_getter)(IntList const*, int) );
 
+void test_resize_speed();
+
 int main()
 {
     printf("hi!\n");
@@ -61,6 +63,9 @@ int main()
     printf("\n#SAFE SPEED\n");
     test_push_speed(il_push);
     test_getref_speed(il_getref);
+
+    printf("\n#RESIZE SPEED\n");
+    test_resize_speed();
 
     printf("\nbye!\n");
     return 0;
@@ -180,6 +185,23 @@ void test_getref_speed( int* (*my_getter)(IntList const*, int) )
     REPORT_CLOCK("[[TIME]] getting");
 
     printf("sum is %d\n", s);
+
+    il_free(&ily);
+}
+
+void test_resize_speed()
+{
+    int const len = 20*1000;
+    IntList ily = il_init(len);
+    il_resize(&ily, 2);
+
+    int ss = 0;
+    START_CLOCK();
+    FOR(s, 0, len) {
+        ily.len = ily.cap; // <- ATTN : UNSAFE !
+        il_resize(&ily, s);
+    }
+    REPORT_CLOCK("[[TIME]] resizing");
 
     il_free(&ily);
 }
