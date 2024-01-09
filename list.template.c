@@ -132,13 +132,14 @@ void _PUSH_UNSAFE(LTN* list, ELT el)
 inline
 ELT* _POP_UNSAFE(LTN* list)
 {
-    return &(list->data[ --(list->len) ]);
+    --(list->len);
+    return &(list->data[list->len-1]);
 }
 
 inline
 ELT* _TOP_UNSAFE(LTN const* list)
 {
-    return &(list->data[list->len]);
+    return &(list->data[list->len-1]);
 }
 
 inline
@@ -173,7 +174,7 @@ inline
 ELT* _GETREF(LTN const* list, int index)
 {
     if ( ! ( 0<=index && index<list->len) ) { return NULL; }
-    return _GETREF(list, index);
+    return _GETREF_UNSAFE(list, index);
 }
 
 

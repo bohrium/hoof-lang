@@ -15,4 +15,20 @@
 #define CONCAT_INNER(X,Y) X ## Y
 #define CONCAT(X,Y) CONCAT_INNER(X,Y)
 
+
+#include <time.h>
+
+#define START_CLOCK()           \
+    clock_t _start, _diff;      \
+    int _msec;                  \
+    RESET_CLOCK();              \
+
+#define RESET_CLOCK()           \
+    _start = clock();
+
+#define REPORT_CLOCK(Msg)                                                   \
+    _diff = clock() - _start;                                               \
+    _msec = _diff * 1000 / CLOCKS_PER_SEC;                                  \
+    printf("%s \t took %d.%03d seconds\n", Msg, _msec/1000, _msec%1000);
+
 #endif//PP_TRICKS
