@@ -1,3 +1,8 @@
+clean:
+	touch temp
+	rm temp*
+	rm *.o
+
 test-list:
 	@echo "\033[37m"
 	@gcc -O3 -std=c17 -pedantic test_list.c -o test_list.o
