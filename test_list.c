@@ -2,39 +2,10 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-#include "preprocessor_tricks.h"
+#include "list.c"
 
-#define ELEMENT_TYPE        int
-#define LIST_TYPE_NAME      IntList
-#define LIST_METHOD_PREFIX  il
-#define EXPAND_FACTOR       1.272 /* sqrt( phi ) , just for fun */
-#include "list.template.c"
-#undef ELEMENT_TYPE
-#undef LIST_TYPE_NAME
-#undef LIST_METHOD_PREFIX
-#undef EXPAND_FACTOR
-
-#define ELEMENT_TYPE        int*
-#define LIST_TYPE_NAME      IntPtrList
-#define LIST_METHOD_PREFIX  ipl
-#define EXPAND_FACTOR       1.272 /* sqrt( phi ) , just for fun */
-#include "list.template.c"
-#undef ELEMENT_TYPE
-#undef LIST_TYPE_NAME
-#undef LIST_METHOD_PREFIX
-#undef EXPAND_FACTOR
-
-#define ELEMENT_TYPE        IntList
-#define LIST_TYPE_NAME      IntListList
-#define LIST_METHOD_PREFIX  ill
-#define EXPAND_FACTOR       1.272 /* sqrt( phi ) , just for fun */
-#include "list.template.c"
-#undef ELEMENT_TYPE
-#undef LIST_TYPE_NAME
-#undef LIST_METHOD_PREFIX
-#undef EXPAND_FACTOR
-
-#define PRINT_LIST_NUMS(LIST) printf(" ... len %d cap %d\n", LIST.len, LIST.cap);
+#define PRINT_LIST_NUMS(LIST) \
+    printf(" ... len %d cap %d\n", LIST.len, LIST.cap);
 
 void test_safe_operations();
 void test_unsafe_operations();
