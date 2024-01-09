@@ -49,6 +49,9 @@ int main()
     CHECK_MATCH(s, 9, "co"      , 0 );
     CHECK_MATCH(s, 9, "sa"      , 1 );
 
+    str_free(&s);
+    str_free(&t);
+
     printf("\nbye!\n");
     return 0;
 }
