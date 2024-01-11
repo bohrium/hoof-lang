@@ -44,5 +44,23 @@
 #ifndef CSTRING_METHODS
 #define CSTRING_METHODS
 
+int cstr_len(CString s)
+{
+    char const* it = s;
+    while ( *it ) { ++it; }
+    return it-s;
+}
+
+bool cstr_match_substring(CString s, CString pattern)
+{
+    while ( *pattern ) {
+        // if ( ! *s ) { return false; }// un-needed due to null termination
+        if ( *s != *pattern ) { return false; }
+        ++s;
+        ++pattern;
+    }
+    return true;
+}
+
 #endif//CSTRING_METHODS
 

@@ -76,6 +76,12 @@ bool str_match_at(String* s, int index, CString pattern)
         ++index;
         ++pattern;
     }
+
+    if ( *pattern ) { return false; } // reject if matched only *part* of
+                                      // pattern (since we assume `s` is
+                                      // null-terminated, this line of code
+                                      // isn't actually needed)
+
     return true;
 }
 
