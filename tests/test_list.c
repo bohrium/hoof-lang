@@ -2,7 +2,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-#include "list.c"
+#include "../list.c"
 
 #define PRINT_LIST_NUMS(LIST) \
     printf(" ... len %d cap %d\n", LIST.len, LIST.cap);

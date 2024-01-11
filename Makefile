@@ -3,10 +3,14 @@ clean:
 	rm temp*
 	rm *.o
 
-SRC_FILE:=test_$(TEST_PREFIX).c
-OBJ_FILE:=test_$(TEST_PREFIX).o
-OUT_FILE:=test_$(TEST_PREFIX).out
-REF_FILE:=test_$(TEST_PREFIX).ref
+lex:
+	gcc -O3 -std=c17 -pedantic lexer.c -o lexer.o
+	./lexer.o
+
+SRC_FILE:=tests/test_$(TEST_PREFIX).c
+OBJ_FILE:=tests/test_$(TEST_PREFIX).o
+OUT_FILE:=tests/test_$(TEST_PREFIX).out
+REF_FILE:=tests/test_$(TEST_PREFIX).ref
 
 test-list:
 	@echo "\033[36;1m"

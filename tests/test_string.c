@@ -2,10 +2,8 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-#include "preprocessor_tricks.h"
-
-#include "cstring.c"
-#include "string.c"
+#include "../cstring.c"
+#include "../string.c"
 
 #define CHECK_MATCH(S,I,P,A)                        \
     {                                               \
