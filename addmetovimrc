@@ -1,0 +1,40 @@
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"~~~~~  Highlight Reader-Attention Words  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+" C special
+augroup cspecial autocmd!
+    " note : (---  ^[^"]*("[^"]*"[^"]*)*  ---) matches even number of "s from
+    " start of line, ensuring we are not inside string (except for escapes,
+    " which we are too lazy to reason about) ... We also are too lazy to
+    " handle when something immediately follows a string literal with no space
+    " in between.
+    "
+    " c type, e.g. IAmACow or int32_t
+    autocmd Syntax cpp call matchadd('Type', '\v(^[^"]*("[^"]*"[^"]*)*(^|[^_A-Za-z0-9]))@<=[A-Z]+[a-zA-Z]*[a-z]+($|[^_A-Za-z0-9])@=')
+    autocmd Syntax cpp call matchadd('Type', '\v(^[^"]*("[^"]*"[^"]*)*(^|[^_A-Za-z0-9]))@<=[a-z]+[_a-z0-9]*_t($|[^_A-Za-z0-9])@=')
+    " c macro, e.g. _CPUT or __MATCH
+    autocmd Syntax cpp call matchadd('CSamMacro', '\v(^[^"]*("[^"]*"[^"]*)*(^|[^_A-Za-z0-9]))@<=[A-Z]+[_A-Z]+[A-Z]+($|[^_A-Za-z0-9])@=')
+    autocmd Syntax cpp call matchadd('CSamMacro', '\v(^[^"]*("[^"]*"[^"]*)*(^|[^_A-Za-z0-9]))@<=__[A-Z]+[_A-Z]+[A-Z]+($|[^_A-Za-z0-9])@=')
+    " c macro flank underscored, e.g. _W_
+    autocmd Syntax cpp call matchadd('CMacroFlankUnderscored', '\v(^[^"]*("[^"]*"[^"]*)*(^|[^_A-Za-z0-9]))@<=_[A-Z]*[_A-Z]+[A-Z]*_($|[^_A-Za-z0-9])@=')
+augroup END
+
+function HiAttnWords()
+    if &background ==# 'dark'
+        call HiAttnWordsDark()
+    else
+        call HiAttnWordsLight()
+    endif
+endfunction
+
+function HiAttnWordsLight()
+    highlight CMacro                 ctermfg=102 cterm=bold
+    highlight CMacroFlankUnderscored ctermfg=145
+endfunction
+
+function HiAttnWordsDark()
+    highlight CMacro                 ctermfg=102 cterm=bold
+    highlight CMacroFlankUnderscored ctermfg=145
+endfunction
+
+call HiAttnWords()

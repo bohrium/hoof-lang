@@ -1,4 +1,5 @@
 #include "stdbool.h"
+
 #include "stdio.h"
 #include "stdlib.h"
 
@@ -67,7 +68,8 @@ int try_match_punct(CString cp)
 {
 #define __MATCH(STR) \
     if ( cstr_match_substring(cp, STR) ) { return cstr_len(STR); }
-#define __MATCHPAIR(OPEN, CLOSE)  { __MATCH(OPEN); __MATCH(CLOSE); }
+#define __MATCHPAIR(OPEN, CLOSE) \
+    { __MATCH(OPEN); __MATCH(CLOSE); }
 
     __MATCH("=");
     __MATCH("\\");
