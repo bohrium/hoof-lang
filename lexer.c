@@ -7,10 +7,10 @@
 #include "string.c"
 
 typedef StringList TokenList;
-typedef Token String;
-Token const   INDENT = "{-INDENT-}";
-Token const UNINDENT = "{-UNINDENT-}";
-Token const COMMENT  = "{-COMMENT-}";
+typedef String Token;
+char const*   INDENT = "{-INDENT-}\0";
+char const* UNINDENT = "{-UNINDENT-}\0";
+char const* COMMENT  = "{-COMMENT-}\0";
 
 typedef enum {
     LT, EQ, GT
@@ -45,8 +45,8 @@ int try_match_word(CString cp)
     // body may consist of alpha, digit, underscore, or hyphen
     while ( is_alpha(*it) || is_digit(*it) || is_horiz(*it) ) { ++it; }
 
-    // must end with alpha or digit (else reject)
-    if ( ! ( is_alpha(*(it-1)) || is_digit(*(it-1)) ) ) { return 0; }
+    //  // must end with alpha or digit (else reject)
+    //  if ( ! ( is_alpha(*(it-1)) || is_digit(*(it-1)) ) ) { return 0; }
 
     // return token length
     return it-cp;
@@ -55,7 +55,7 @@ int try_match_word(CString cp)
 int try_match_punct(CString cp)
 {
 #define __MATCH(STR) \
-    if ( cstr_match_substr(cp, STR) ) { return cstr_len(STR); }
+    if ( cstr_match_substring(cp, STR) ) { return cstr_len(STR); }
 #define __MATCHPAIR(OPEN, CLOSE)  { __MATCH(OPEN); __MATCH(CLOSE); }
 
     __MATCH("=");
@@ -76,32 +76,38 @@ int try_match_punct(CString cp)
 #undef __MATCH
 }
 
-int maybe_match_comment(CString cp)
+int try_match_comment(CString cp)
 {
-    if ( cstr_match_substr(line, "//") ) { return cstr_len(cp); }
+    if ( cstr_match_substring(cp, "--") ) { return cstr_len(cp); }
+    return 0;   /* no symbol recognized!  */
 }
 
-int add_token(StringList const* token_list, String const* line, int index)
+int add_token(StringList* token_list, String const* line, int index)
 // assumes lines null terminated
 {
     while ( str_match_at(line, index, " ") )  { ++index; }
-    if ( index == str_len(line) )             { return 0; }
+    if ( index == str_len(line) )             { return -1; }
 
     /* ATTN : `words` include keywords, term identifiers, type identifiers */
 
     int toklen;
-    switch (0) { // ATTN : uses FALLTHROUGH to find nonzero toklen
-    case 0:     if ( toklen=try_match_word   (line->data + index) ) { break; }
-    case 1:     if ( toklen=try_match_punct  (line->data + index) ) { break; }
-    case 2:     if ( toklen=try_match_comment(line->data + index) ) { break; }
-    default:
-        /* TODO: complain!  getting here means a parse error! */
+    switch (0) { // ATTN : find nonzero toklen then IMMEDIATELY break
+    default:    if ( toklen=try_match_word   (line->data + index) ) { break; }
+                if ( toklen=try_match_punct  (line->data + index) ) { break; }
+                if ( toklen=try_match_comment(line->data + index) ) { break; }
+        /* TODO: complain!  getting here means a parse error or trailing whitespace! */
+        printf(":-(\n");
     }
 
-    String s = str_init(0);
-    for (int i=0; i!=toklen; ++i) { str_push(&s, line->data[index+i]); }
-    strl_push(token_list, s);
-    return index+toklen;
+    if (toklen) {
+        String s = str_init(0);
+        for (int i=0; i!=toklen; ++i) { str_push(&s, line->data[index+i]); }
+        str_null_terminate(&s);
+        strl_push(token_list, s);
+        return index+toklen;
+    } else {
+        return -1;
+    }
 }
 
 TokenList tokenize(StringList const* lines)
@@ -112,8 +118,9 @@ TokenList tokenize(StringList const* lines)
     IntList indent_stack = il_init(0);
     il_push(&indent_stack, 0);
 
-    FOR (n, 0, str_len(lines)) {
+    FOR (n, 0, strl_len(lines)) {
         String const* ln = strl_getref(lines, n);
+        printf("line %d (%s)\n", n, ln->data);
 
         int indent = get_indent(ln);
         switch ( COMPARE(indent, *il_top(&indent_stack)) ) {
@@ -121,19 +128,21 @@ TokenList tokenize(StringList const* lines)
             il_push(&indent_stack, indent);
           break; case EQ:
           break; case GT:
-            while ( indent < *il_top(&indent_stack); ) {
+            while ( indent < *il_top(&indent_stack) ) {
                 il_pop(&indent_stack);
-                strl_push(&tl, UNINDENT);
+                strl_push(&tl, str_init_as(UNINDENT));
             }
         }
 
         int d = indent;
         while ( ln->data[d] ) {
-            d += add_token(tl, ln->data+d);
+            int tt = add_token(&tl, ln, d);
+            if ( tt==-1 ) { break; }
+            d = tt;
         }
     }
 
-    il_free(indent_stack);
+    il_free(&indent_stack);
     return tl;
 }
 
@@ -142,38 +151,26 @@ StringList lines_of(CString text)
     StringList lines = strl_init(0);
     String s = str_init(0);
 
-    //if ( ! *text ) { return lines; } // don't even alloc string `s` if text empty;
+    // logic is made annoying because line might end in '\0' rather than '\n'
+    // and we also want not to leak.
+    while ( 1 ) {
 
-    CString cp = text;
-    while ( true ) {
-        if ( *cp=='\n' || *cp=='\0' ) {
+        if ( *text=='\n' || *text=='\0' ) {
+            str_null_terminate(&s); /*important!*/
             strl_push(&lines, s);
-            if (*cp=='\0') { break; }
             s = str_init(0);
         } else {
-            str_push(s, *cp);
+            str_push(&s, *text);
         }
-        ++cp;
+
+        if ( *text=='\0' ) { break; }
+
+        ++text;
     }
 
-    while ( str_match_at(line, index, " ") )  { ++index; }
-    if ( index == str_len(line) )             { return 0; }
+    str_free(&s);
 
-    /* ATTN : `words` include keywords, term identifiers, type identifiers */
-
-    int toklen;
-    switch (0) { // ATTN : uses FALLTHROUGH to find nonzero toklen
-    case 0:     if ( toklen=try_match_word   (line->data + index) ) { break; }
-    case 1:     if ( toklen=try_match_punct  (line->data + index) ) { break; }
-    case 2:     if ( toklen=try_match_comment(line->data + index) ) { break; }
-    default:
-        /* TODO: complain!  getting here means a parse error! */
-    }
-
-    String s = str_init(0);
-    for (int i=0; i!=toklen; ++i) { str_push(&s, line->data[index+i]); }
-    strl_push(token_list, s);
-    return index+toklen;
+    return lines;
 }
 
 
@@ -181,20 +178,37 @@ int main()
 {
     printf("hi!\n");
     String s = str_init_as(
-      "woah!                                                        \n"
-      "woah!                                                        \n"
-      "woah!                                                        \n"
-      "woah!                                                        \n"
-      "woah!                                                        \n"
-      "woah!                                                        \n"
+      "aoah!                                                       x\n"
+      "boah!                                                        \n"
+      "coah!         -- i am a comment                              \n"
+      "xoah!                                                        \n"
+      "yoah!                                                        \n"
+      "zoah!                                                        "
     );
     str_print(&s);
+    printf("\n");
 
+    StringList lines;
     StringList tokens;
     {
+        printf("[A]\n");
+        lines = lines_of(s.data);
+        for (int i=0; i!=lines.len; ++i) {
+            printf("[[ %s ]]", lines.data[i].data);
+        }
+
+        printf("[B]\n");
+        tokens = tokenize(&lines);
+        printf("[C]\n");
+        for (int i=0; i!=tokens.len; ++i) {
+            printf("[[ %s ]]", tokens.data[i].data);
+        }
+        printf("[D]\n");
     }
     while (strl_len(&tokens)) { str_free(strl_pop(&tokens)); }
-    strl_free(&tokens)
+    strl_free(&tokens);
+    while (strl_len(&lines)) { str_free(strl_pop(&lines)); }
+    strl_free(&lines);
 
     str_free(&s);
     printf("bye!\n");
