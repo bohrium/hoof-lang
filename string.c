@@ -65,9 +65,9 @@ String  str_init_as(CString src);
 void str_print(String* s);
 void str_println(String* s);
 
-bool str_match_at(String* s, int index, CString pattern);
+bool str_match_at(String const* s, int index, CString pattern);
 
-bool str_match_at(String* s, int index, CString pattern)
+bool str_match_at(String const* s, int index, CString pattern)
 {
     if ( ! (0<=index && index<s->len) ) { return false; }
 

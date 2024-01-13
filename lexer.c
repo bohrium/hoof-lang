@@ -6,6 +6,15 @@
 #include "cstring.c"
 #include "string.c"
 
+#define BLACK       printf("\033[30m")
+#define RED         printf("\033[31m")
+#define GREEN       printf("\033[32m")
+#define YELLOW      printf("\033[33m")
+#define BLUE        printf("\033[34m")
+#define PURPLE      printf("\033[35m")
+#define CYAN        printf("\033[36m")
+#define WHITE       printf("\033[37m")
+
 typedef StringList TokenList;
 typedef String Token;
 char const*   INDENT = "{-INDENT-}\0";
@@ -31,9 +40,18 @@ bool is_upper(char c) { return ('A'<=c && c<='Z'); }
 bool is_lower(char c) { return ('a'<=c && c<='z'); }
 bool is_score(char c) { return (          c=='_'); }
 bool is_hyphe(char c) { return (          c=='-'); }
+bool is_space(char c) { return (          c==' '); }
 
 bool is_alpha(char c) { return is_upper(c) || is_lower(c); }
 bool is_horiz(char c) { return is_score(c) || is_hyphe(c); }
+
+int try_match_space(CString cp)
+{
+    CString it = cp;
+    if ( ! is_space(*it) ) { ++it; }
+    // return token length
+    return it-cp;
+}
 
 int try_match_word(CString cp)
 {
@@ -46,7 +64,7 @@ int try_match_word(CString cp)
     while ( is_alpha(*it) || is_digit(*it) || is_horiz(*it) ) { ++it; }
 
     //  // must end with alpha or digit (else reject)
-    //  if ( ! ( is_alpha(*(it-1)) || is_digit(*(it-1)) ) ) { return 0; }
+    if ( ! ( is_alpha(*(it-1)) || is_digit(*(it-1)) ) ) { return 0; }
 
     // return token length
     return it-cp;
@@ -86,7 +104,8 @@ int add_token(StringList* token_list, String const* line, int index)
 // assumes lines null terminated
 {
     while ( str_match_at(line, index, " ") )  { ++index; }
-    if ( index == str_len(line) )             { return -1; }
+    char last = line->data[index];
+    if ( last=='\0' || last=='\n' )             { return -1; }
 
     /* ATTN : `words` include keywords, term identifiers, type identifiers */
 
@@ -94,20 +113,27 @@ int add_token(StringList* token_list, String const* line, int index)
     switch (0) { // ATTN : find nonzero toklen then IMMEDIATELY break
     default:    if ( toklen=try_match_word   (line->data + index) ) { break; }
                 if ( toklen=try_match_punct  (line->data + index) ) { break; }
-                if ( toklen=try_match_comment(line->data + index) ) { break; }
-        /* TODO: complain!  getting here means a parse error or trailing whitespace! */
-        printf(":-(\n");
     }
-
-    if (toklen) {
-        String s = str_init(0);
-        for (int i=0; i!=toklen; ++i) { str_push(&s, line->data[index+i]); }
-        str_null_terminate(&s);
-        strl_push(token_list, s);
-        return index+toklen;
-    } else {
+    if ( ! toklen ) {
+        if ( try_match_comment(line->data + index) ) {
+            CYAN; printf("comment\n");
+        }
+        //else if ( try_match_space(line->data + index) ) {
+        //    printf("trailing whitespace\n");
+        //}
+        else {
+            /* TODO: complain!  getting here means a parse error */
+            RED; printf("UNABLE TO MATCH:\n");
+            RED; printf("    [%s]\n", line->data + index);
+        }
         return -1;
     }
+
+    String s = str_init(0);
+    for (int i=0; i!=toklen; ++i) { str_push(&s, line->data[index+i]); }
+    str_null_terminate(&s);
+    strl_push(token_list, s);
+    return index+toklen;
 }
 
 TokenList tokenize(StringList const* lines)
@@ -120,7 +146,7 @@ TokenList tokenize(StringList const* lines)
 
     FOR (n, 0, strl_len(lines)) {
         String const* ln = strl_getref(lines, n);
-        printf("line %d (%s)\n", n, ln->data);
+        CYAN; printf("line %d (%s)\n", n, ln->data);
 
         int indent = get_indent(ln);
         switch ( COMPARE(indent, *il_top(&indent_stack)) ) {
@@ -176,34 +202,43 @@ StringList lines_of(CString text)
 
 int main()
 {
+    CYAN;
     printf("hi!\n");
+
     String s = str_init_as(
-      "aoah!                                                       x\n"
+      "aoah!   <<  >>                                              x\n"
       "boah!                                                        \n"
-      "coah!         -- i am a comment                              \n"
-      "xoah!                                                        \n"
-      "yoah!                                                        \n"
+      "c-ah!         -- i am a comment                              \n"
+      "ThisIsATypeName And-So_Is_This ButTrailingUnderscoresIllegal_\n"
+      "yoah!     **{{ }}                                            \n"
       "zoah!                                                        "
     );
-    str_print(&s);
-    printf("\n");
+    //str_print(&s);
+    //printf("\n");
 
     StringList lines;
     StringList tokens;
     {
-        printf("[A]\n");
+        BLUE; printf("[A]\n");
         lines = lines_of(s.data);
-        for (int i=0; i!=lines.len; ++i) {
-            printf("[[ %s ]]", lines.data[i].data);
-        }
-
-        printf("[B]\n");
+        BLUE; printf("[B]\n");
         tokens = tokenize(&lines);
-        printf("[C]\n");
+        BLUE; printf("[C]\n");
+
+        int col=0;
+        CYAN;
         for (int i=0; i!=tokens.len; ++i) {
-            printf("[[ %s ]]", tokens.data[i].data);
+            CString ss = tokens.data[i].data;
+            int del = cstr_len(ss);
+            col += cstr_len("[  ]")+del;
+            //printf("(%d)", col);
+            if ( col >= 80 ) { printf("\n"); col = del; }
+            WHITE;printf("[ ");
+            PURPLE; printf("%s", ss);
+            WHITE;printf(" ]");
         }
-        printf("[D]\n");
+        printf("\n");
+        BLUE; printf("[D]\n");
     }
     while (strl_len(&tokens)) { str_free(strl_pop(&tokens)); }
     strl_free(&tokens);
