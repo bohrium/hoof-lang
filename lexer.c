@@ -6,6 +6,8 @@
 #include "cstring.c"
 #include "string.c"
 
+#include "preprocessor_tricks.h"
+
 typedef StringList TokenList;
 typedef String Token;
 char const*   INDENT = "{-INDENT-}";
@@ -95,28 +97,26 @@ int try_match_comment(CString cp)
 int add_token(StringList* token_list, String const* line, int index)
 // assumes lines null terminated
 {
-    while ( str_match_at(line, index, " ") )  { ++index; }
+    // chomp leading whitespace; early return if no more tokens
+    while ( str_match_at(line, index, " ") ) { ++index; }
     char last = str_at(line, index);
-    if ( last=='\0' || last=='\n' )             { return -1; }
+    if ( last=='\0' || last=='\n' )        { return -1; }
 
     /* ATTN : `words` include keywords, term identifiers, type identifiers */
 
     int toklen;
-    switch (0) { // ATTN : find nonzero toklen then IMMEDIATELY break
-    default:    if ( toklen=try_match_word   (line->raw.data + index) ) { break; }
-                if ( toklen=try_match_punct  (line->raw.data + index) ) { break; }
+    BREAKBLOCK {
+        if ( toklen=try_match_word   (line->raw.data + index) ) { break; }
+        if ( toklen=try_match_punct  (line->raw.data + index) ) { break; }
     }
     if ( ! toklen ) {
         if ( try_match_comment(line->raw.data + index) ) {
-            CYAN; printf("comment\n");
+            BARKLN("comment", CYAN);
         }
-        //else if ( try_match_space(line->raw.data + index) ) {
-        //    printf("trailing whitespace\n");
-        //}
         else {
             /* TODO: complain!  getting here means a parse error */
-            RED; printf("UNABLE TO MATCH:\n");
-            RED; printf("    [%s]\n", line->raw.data + index);
+            BARKLN("UNABLE TO MATCH", RED);
+            BARKLN("    [%s]" _W_ line->raw.data + index, RED);
         }
         return -1;
     }
@@ -138,12 +138,12 @@ TokenList tokenize(StringList const* lines)
 
     FOR (n, 0, strl_len(lines)) {
         String const* ln = strl_getref(lines, n);
-        CYAN; printf("line %d (%s)\n", n, ln->raw.data);
+        BARKLN("line %d (%s)" _W_ n _W_ ln->raw.data, BLUE);
 
         int indent = get_indent(ln);
-        printf("indentation is %d\n", indent);
+        BARKLN("indentation is %d" _W_ indent, CYAN);
         if ( indent == str_len(ln) ) {
-            printf("BLANK LINE\n");
+            BARKLN("BLANK LINE", CYAN);
             continue;
         }
 
@@ -151,12 +151,12 @@ TokenList tokenize(StringList const* lines)
           break; case GT:
             il_push(&indent_stack, indent);
             strl_push(&tl, str_init_as(INDENT));
-            printf("INDENT to %d\n", indent);
+            BARKLN("INDENT to %d\n" _W_ indent, CYAN);
           break; case EQ:
           break; case LT:
             while ( indent < *il_top(&indent_stack) ) {
                 il_pop(&indent_stack);
-                printf("DEDENT to %d\n", indent);
+                BARKLN("DEDENT to %d\n" _W_ indent, CYAN);
                 strl_push(&tl, str_init_as(UNINDENT));
             }
         }
@@ -203,8 +203,8 @@ StringList lines_of(CString text)
 
 int main()
 {
-    CYAN;
-    printf("hi!\n");
+    DEFAULT_COLOR();
+    BARKLN("hi!", CYAN);
 
     String s = str_init_as(
       "-- this is a comment, then a blank line                      \n"
@@ -225,26 +225,24 @@ int main()
     StringList lines;
     StringList tokens;
     {
-        BLUE; printf("[A]\n");
+        BARKLN("[A]", BLUE);
         lines = lines_of(s.raw.data);
-        BLUE; printf("[B]\n");
+        BARKLN("[B]", BLUE);
         tokens = tokenize(&lines);
-        BLUE; printf("[C]\n");
+        BARKLN("[C]", BLUE);
 
         int col=0;
-        CYAN;
         for (int i=0; i!=tokens.len; ++i) {
             CString ss = tokens.data[i].raw.data;
             int del = cstr_len(ss);
             col += cstr_len("[  ]")+del;
-            //printf("(%d)", col);
             if ( col >= 80 ) { printf("\n"); col = del; }
-            WHITE;printf("[ ");
-            PURPLE; printf("%s", ss);
-            WHITE;printf(" ]");
+            BARK("[ ", WHITE);
+            BARK("%s" _W_ ss, PURPLE);
+            BARK("[ ", WHITE);
         }
         printf("\n");
-        BLUE; printf("[D]\n");
+        BARKLN("[D]", BLUE);
     }
     while (strl_len(&tokens)) { str_free(strl_pop(&tokens)); }
     strl_free(&tokens);
@@ -253,5 +251,5 @@ int main()
 
     // TODO: fix "unindent" leak
     str_free(&s);
-    printf("bye!\n");
+    BARKLN("bye!", CYAN);
 }

@@ -1,15 +1,10 @@
 #ifndef PP_TRICKS
 #define PP_TRICKS
 
-#define BLACK       printf("\033[30m")
-#define RED         printf("\033[31m")
-#define GREEN       printf("\033[32m")
-#define YELLOW      printf("\033[33m")
-#define BLUE        printf("\033[34m")
-#define PURPLE      printf("\033[35m")
-#define CYAN        printf("\033[36m")
-#define WHITE       printf("\033[37m")
-
+#ifndef TRIVIAL_FUNC_DEFN
+void TRIVIAL_FUNC() {}
+#define EXPECT_PARENS TRIVIAL_FUNC
+#endif//TRIVIAL_FUNC_DEFN
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~  PP Variable Magic  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -29,9 +24,11 @@
 #define CONCAT(X,Y) CONCAT_INNER(X,Y)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* ~  Idiom Shorthands  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~  Control Flow Idiom Shorthands  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #define FOR(VAR, START, END) for (int VAR=START; VAR!=END; ++VAR)
+
+#define BREAKBLOCK switch (0) default:
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~  Types  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -42,6 +39,31 @@
 //      (*(                 \
 //         (T *)(&(X))     \
 //      ))
+
+/* ========================================================================= */
+/* =  IO / External Helpers  =============================================== */
+/* ========================================================================= */
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~  Color Printing  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define BLACK       printf("\033[30m"); EXPECT_PARENS
+#define RED         printf("\033[31m"); EXPECT_PARENS
+#define GREEN       printf("\033[32m"); EXPECT_PARENS
+#define YELLOW      printf("\033[33m"); EXPECT_PARENS
+#define BLUE        printf("\033[34m"); EXPECT_PARENS
+#define PURPLE      printf("\033[35m"); EXPECT_PARENS
+#define CYAN        printf("\033[36m"); EXPECT_PARENS
+#define WHITE       printf("\033[37m"); EXPECT_PARENS
+
+#define DEFAULT_COLOR       CYAN
+
+#define _W_ ,
+
+#define BARK_INNER(BODY, C)   { C(); BODY;               DEFAULT_COLOR(); } EXPECT_PARENS
+
+#define BARK(MESSAGE, C)    BARK_INNER( { printf(MESSAGE);               } , C)
+#define BARKLN(MESSAGE, C)  BARK_INNER( { printf(MESSAGE); printf("\n"); } , C)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~  Timeing Helpers  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
