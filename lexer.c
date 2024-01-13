@@ -30,7 +30,7 @@ int get_indent(String const* line)
 {
     int i;
     for (i = 0; i != str_len(line); ++i) {
-        if ( *line->data != ' ' ) { return i; }
+        if ( str_at(line, i) != ' ' ) { return i; }
     }
     return i;
 }
@@ -104,34 +104,34 @@ int add_token(StringList* token_list, String const* line, int index)
 // assumes lines null terminated
 {
     while ( str_match_at(line, index, " ") )  { ++index; }
-    char last = line->data[index];
+    char last = str_at(line, index);
     if ( last=='\0' || last=='\n' )             { return -1; }
 
     /* ATTN : `words` include keywords, term identifiers, type identifiers */
 
     int toklen;
     switch (0) { // ATTN : find nonzero toklen then IMMEDIATELY break
-    default:    if ( toklen=try_match_word   (line->data + index) ) { break; }
-                if ( toklen=try_match_punct  (line->data + index) ) { break; }
+    default:    if ( toklen=try_match_word   (line->raw.data + index) ) { break; }
+                if ( toklen=try_match_punct  (line->raw.data + index) ) { break; }
     }
     if ( ! toklen ) {
-        if ( try_match_comment(line->data + index) ) {
+        if ( try_match_comment(line->raw.data + index) ) {
             CYAN; printf("comment\n");
         }
-        //else if ( try_match_space(line->data + index) ) {
+        //else if ( try_match_space(line->raw.data + index) ) {
         //    printf("trailing whitespace\n");
         //}
         else {
             /* TODO: complain!  getting here means a parse error */
             RED; printf("UNABLE TO MATCH:\n");
-            RED; printf("    [%s]\n", line->data + index);
+            RED; printf("    [%s]\n", line->raw.data + index);
         }
         return -1;
     }
 
     String s = str_init(0);
-    for (int i=0; i!=toklen; ++i) { str_push(&s, line->data[index+i]); }
-    str_null_terminate(&s);
+    for (int i=0; i!=toklen; ++i) { str_push(&s, str_at(line, index+i)); }
+    //str_null_terminate(&s);
     strl_push(token_list, s);
     return index+toklen;
 }
@@ -146,7 +146,7 @@ TokenList tokenize(StringList const* lines)
 
     FOR (n, 0, strl_len(lines)) {
         String const* ln = strl_getref(lines, n);
-        CYAN; printf("line %d (%s)\n", n, ln->data);
+        CYAN; printf("line %d (%s)\n", n, ln->raw.data);
 
         int indent = get_indent(ln);
         switch ( COMPARE(indent, *il_top(&indent_stack)) ) {
@@ -161,7 +161,7 @@ TokenList tokenize(StringList const* lines)
         }
 
         int d = indent;
-        while ( ln->data[d] ) {
+        while ( str_at(ln, d) ) {
             int tt = add_token(&tl, ln, d);
             if ( tt==-1 ) { break; }
             d = tt;
@@ -182,7 +182,7 @@ StringList lines_of(CString text)
     while ( 1 ) {
 
         if ( *text=='\n' || *text=='\0' ) {
-            str_null_terminate(&s); /*important!*/
+            //str_null_terminate(&s); /*important!*/
             strl_push(&lines, s);
             s = str_init(0);
         } else {
@@ -220,7 +220,7 @@ int main()
     StringList tokens;
     {
         BLUE; printf("[A]\n");
-        lines = lines_of(s.data);
+        lines = lines_of(s.raw.data);
         BLUE; printf("[B]\n");
         tokens = tokenize(&lines);
         BLUE; printf("[C]\n");
@@ -228,7 +228,7 @@ int main()
         int col=0;
         CYAN;
         for (int i=0; i!=tokens.len; ++i) {
-            CString ss = tokens.data[i].data;
+            CString ss = tokens.data[i].raw.data;
             int del = cstr_len(ss);
             col += cstr_len("[  ]")+del;
             //printf("(%d)", col);

@@ -30,10 +30,10 @@ int main()
 
     printf("s: ");   str_println(&s);
     printf("t: ");   str_println(&t);
-    str_append(&s, t.data);
+    str_append(&s, t.raw.data);
     printf("s: ");   str_println(&s);
     printf("t: ");   str_println(&t);
-    str_copy_from(&t, s.data);
+    str_copy_from(&t, s.raw.data);
     printf("s: ");   str_println(&s);
     printf("t: ");   str_println(&t);
 

@@ -3,24 +3,21 @@
 #include "stdlib.h"
 
 #include "cstring.c"
+#include "rawstring.c"
 
 #include "preprocessor_tricks.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~  Basic Types  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#ifndef STRING_TYPE
-#define STRING_TYPE
-    #define ELEMENT_TYPE        char
-    #define LIST_TYPE_NAME      String
-    #define LIST_METHOD_PREFIX  str
-    #define EXPAND_FACTOR       1.272 /* sqrt( phi ) , just for fun */
-    #include "list.template.c"
-    #undef ELEMENT_TYPE
-    #undef LIST_TYPE_NAME
-    #undef LIST_METHOD_PREFIX
-    #undef EXPAND_FACTOR
-#endif//STRING_TYPE
+// ATTN: strings are necessarily null-terminated at all times
+//
+//
+//
+
+// TODO : ensure no implicit casting!
+// typedef RawString String;
+typedef struct { RawString raw; } String;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~  Derived Types  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -54,25 +51,152 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~  Methods  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-bool str_is_null_terminated(String* s);
-void str_null_terminate(String* s);
-void str_un_null_terminate(String* s);
+/* -----  basic : memory and chunk-wise  ----------------------------------- */
 
+String  str_init(int cap);
+int str_len(String const* s);
+void str_free(String* s);
+
+String  str_init_as(CString src);
 void    str_append(String* receiver, CString addme);
 void    str_copy_from(String* dst, CString src);
-String  str_init_as(CString src);
 
-void str_print(String* s);
-void str_println(String* s);
+/* -----  basic : character-wise ------------------------------------------- */
+
+// ATTN: if string is empty, returns '\0'
+char str_at(String const* s, int index);    // does not check index bounds
+char str_top(String const* s);
+char str_pop(String* s);
+void str_push(String* s, char c);           // assumes c!='\0'
+
+/* -----  basic : display  ------------------------------------------------- */
+
+void str_print(String const* s);
+void str_println(String const* s);
+
+/* -----  text processing -------------------------------------------------- */
 
 bool str_match_at(String const* s, int index, CString pattern);
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~  Basic Method Implementations  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#ifndef STRING_METHODS_BASIC
+#define STRING_METHODS_BASIC
+
+/* -----  memory and chunkwise  -------------------------------------------- */
+
+String str_init(int cap)
+{
+    // TODO : resize to cap(+1)
+    // return CAST_AS(String, rstr_init_as(""));
+    return CAST_AS(String, { rstr_init_as("") });
+}
+
+String str_init_as(CString src)
+{
+    return CAST_AS(String, { rstr_init_as(src) } );
+}
+
+inline
+int str_len(String const* s)
+{
+    RawString const* raw = &(s->raw); //CAST_AS(RawString const*, &(s.raw));
+    return rstr_len(raw)-1;
+}
+
+void str_free(String* s)
+{
+    RawString* raw = &(s->raw); //CAST_AS(RawString*, s);
+    rstr_free(&(s->raw));
+}
+
+/* -----  character-wise  -------------------------------------------------- */
+
+inline
+void str_push(String* s, char c)
+// assumes c!='\0'
+{
+    RawString* raw = &(s->raw); //CAST_AS(RawString*, s);
+    int last_occupied = rstr_len(raw)-1;
+    *rstr_getref_unsafe(raw, last_occupied ) = c;
+    rstr_unchecked_null_terminate(raw);
+}
+
+inline
+char str_top(String const* s)
+{
+    RawString const* raw = &(s->raw); //CAST_AS(RawString const*, s);
+    int last_occupied = rstr_len(raw)-1;
+    return *rstr_getref_unsafe(raw, last_occupied - 1);
+}
+
+inline
+char str_pop(String* s)
+{
+    RawString* raw = &(s->raw); //CAST_AS(RawString*, s);
+    if ( rstr_len(raw) == 1 ) { return '\0'; }
+    char c = str_top(s);
+    { /* ATTN : order matters */
+        rstr_pop(raw);
+        *rstr_getref_unsafe(raw, rstr_len(raw)-1) = '\0';
+    }
+    return c;
+}
+
+inline
+char str_at(String const* s, int index)
+// does not check index bounds
+{
+    RawString const* raw = &(s->raw); //CAST_AS(RawString const*, s);
+    return *rstr_getref_unsafe(raw, index);
+}
+
+/* -----  chunk-wise  ------------------------------------------------------ */
+
+void str_append(String* receiver, CString addme)
+{
+    RawString* raw = &(receiver->raw); //CAST_AS(RawString*, receiver);
+    rstr_un_null_terminate(raw); // TODO: make unchecked
+    do {
+        rstr_push(raw, *addme);
+    } while ( *(addme++) );
+    rstr_unchecked_null_terminate(raw);
+}
+
+void str_copy_from(String* dst, CString src)
+{
+    dst->raw.len=0;
+    str_append(dst, src);
+}
+
+/* -----  display  --------------------------------------------------------- */
+
+void str_print(String const* s)
+{
+    printf("%s", s->raw.data);
+}
+
+void str_println(String const* s)
+{
+    str_print(s);
+    printf("\n");
+}
+
+#endif//STRING_METHODS_BASIC
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~  Text Processing Operations  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#ifndef STRING_METHODS_TEXT
+#define STRING_METHODS_TEXT
+
 bool str_match_at(String const* s, int index, CString pattern)
 {
-    if ( ! (0<=index && index<s->len) ) { return false; }
+    if ( ! (0<=index && index < s->raw.len) ) { return false; }
 
-    while ( index!=s->len && *pattern ) {
-        if ( s->data[index] != *pattern ) { return false; }
+    while ( index!=s->raw.len && *pattern ) {
+        if ( str_at(s, index) != *pattern ) { return false; }
         ++index;
         ++pattern;
     }
@@ -85,63 +209,4 @@ bool str_match_at(String const* s, int index, CString pattern)
     return true;
 }
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* ~  Method Implementations  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-#ifndef STRING_METHODS
-#define STRING_METHODS
-
-String str_init_as(CString src)
-{
-    String s = str_init(8);
-    str_copy_from(&s, src);
-    return s;
-}
-
-inline
-bool str_is_null_terminated(String* s)
-{
-    return ! str_is_empty(s) && *str_top(s)=='\0';
-}
-
-inline
-void str_null_terminate(String* s)
-{
-    if ( ! str_is_null_terminated(s) ) { str_push(s, '\0'); }
-}
-
-inline
-void str_un_null_terminate(String* s)
-{
-    if ( str_is_null_terminated(s) ) { str_pop(s); }
-}
-
-void str_print(String* s)
-{
-    str_null_terminate(s);
-    printf("%s", s->data);
-}
-
-void str_println(String* s)
-{
-    str_print(s);
-    printf("\n");
-}
-
-void str_append(String* receiver, CString addme)
-{
-    str_un_null_terminate(receiver);
-    do {
-        str_push(receiver, *addme);
-    } while ( *(addme++) );
-    str_null_terminate(receiver);
-}
-
-void str_copy_from(String* dst, CString src)
-{
-    dst->len=0;
-    str_append(dst, src);
-}
-
-#endif//STRING_METHODS
-
+#endif//STRING_METHODS_TEXT
