@@ -6,31 +6,22 @@
 #include "cstring.c"
 #include "string.c"
 
-#define BLACK       printf("\033[30m")
-#define RED         printf("\033[31m")
-#define GREEN       printf("\033[32m")
-#define YELLOW      printf("\033[33m")
-#define BLUE        printf("\033[34m")
-#define PURPLE      printf("\033[35m")
-#define CYAN        printf("\033[36m")
-#define WHITE       printf("\033[37m")
-
 typedef StringList TokenList;
 typedef String Token;
-char const*   INDENT = "{-INDENT-}\0";
-char const* UNINDENT = "{-UNINDENT-}\0";
-char const* COMMENT  = "{-COMMENT-}\0";
+char const*   INDENT = "{-INDENT-}";
+char const* UNINDENT = "{-DEDENT-}";
+char const* COMMENT  = "{-COMMENT-}";
 
 typedef enum {
     LT, EQ, GT
 } COMPARE_T;
-#define COMPARE(X,Y) ((X)<(Y) ? LT : (X)>(Y) ? GT : EQ)
+#define COMPARE(X,Y) (((X)<(Y)) ? LT : ((X)>(Y)) ? GT : EQ)
 
 int get_indent(String const* line)
 {
     int i;
     for (i = 0; i != str_len(line); ++i) {
-        if ( str_at(line, i) != ' ' ) { return i; }
+        if ( str_at(line, i) != ' ' ) { break; }
     }
     return i;
 }
@@ -85,6 +76,7 @@ int try_match_punct(CString cp)
     __MATCH("!");
     __MATCH("{");           __MATCH("}");
 
+    __MATCH(":");
     __MATCH("@");
     __MATCH("[[");          __MATCH("]]");
     __MATCH("<<");          __MATCH(">>");
@@ -149,13 +141,22 @@ TokenList tokenize(StringList const* lines)
         CYAN; printf("line %d (%s)\n", n, ln->raw.data);
 
         int indent = get_indent(ln);
+        printf("indentation is %d\n", indent);
+        if ( indent == str_len(ln) ) {
+            printf("BLANK LINE\n");
+            continue;
+        }
+
         switch ( COMPARE(indent, *il_top(&indent_stack)) ) {
-          break; case LT:
-            il_push(&indent_stack, indent);
-          break; case EQ:
           break; case GT:
+            il_push(&indent_stack, indent);
+            strl_push(&tl, str_init_as(INDENT));
+            printf("INDENT to %d\n", indent);
+          break; case EQ:
+          break; case LT:
             while ( indent < *il_top(&indent_stack) ) {
                 il_pop(&indent_stack);
+                printf("DEDENT to %d\n", indent);
                 strl_push(&tl, str_init_as(UNINDENT));
             }
         }
@@ -206,12 +207,17 @@ int main()
     printf("hi!\n");
 
     String s = str_init_as(
-      "aoah!   <<  >>                                              x\n"
-      "boah!                                                        \n"
-      "c-ah!         -- i am a comment                              \n"
-      "ThisIsATypeName And-So_Is_This ButTrailingUnderscoresIllegal_\n"
-      "yoah!     **{{ }}                                            \n"
-      "zoah!                                                        "
+      "-- this is a comment, then a blank line                      \n"
+      "                                                             \n"
+      "my_identifier:MyTypeName                                     \n"
+      "                                                             \n"
+      "indentation_test                                             \n"
+      "  inside_block                                               \n"
+      "    super_inner                                              \n"
+      "  inside_block                                               \n"
+      "    super_inner                                              \n"
+      "                                                             \n"
+      "outside_block                                                \n"
     );
     //str_print(&s);
     //printf("\n");
@@ -245,6 +251,7 @@ int main()
     while (strl_len(&lines)) { str_free(strl_pop(&lines)); }
     strl_free(&lines);
 
+    // TODO: fix "unindent" leak
     str_free(&s);
     printf("bye!\n");
 }

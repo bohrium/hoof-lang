@@ -1,6 +1,16 @@
 #ifndef PP_TRICKS
 #define PP_TRICKS
 
+#define BLACK       printf("\033[30m")
+#define RED         printf("\033[31m")
+#define GREEN       printf("\033[32m")
+#define YELLOW      printf("\033[33m")
+#define BLUE        printf("\033[34m")
+#define PURPLE      printf("\033[35m")
+#define CYAN        printf("\033[36m")
+#define WHITE       printf("\033[37m")
+
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~  PP Variable Magic  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
