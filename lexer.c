@@ -1,24 +1,18 @@
 #include "stdbool.h"
-
 #include "stdio.h"
 #include "stdlib.h"
 
-#include "list.c"
-#include "cstring.c"
-#include "string.c"
+#include "list.h"
+#include "cstring.h"
+#include "string.h"
+#include "rawstring.h"
+#include "lexer.h"
 
 #include "preprocessor_tricks.h"
 
-typedef StringList TokenList;
-typedef String Token;
 char const*   INDENT = "{-INDENT-}";
 char const* UNINDENT = "{-DEDENT-}";
-char const* COMMENT  = "{-COMMENT-}";
-
-typedef enum {
-    LT, EQ, GT
-} COMPARE_T;
-#define COMPARE(X,Y) (((X)<(Y)) ? LT : ((X)>(Y)) ? GT : EQ)
+char const* NEWLINE  = "{-NEWLINE-}";
 
 int get_indent(String const* line)
 {
@@ -113,7 +107,7 @@ int add_token(StringList* token_list, String const* line, int index)
     }
     if ( ! toklen ) {
         if ( try_match_comment(line->raw.data + index) ) {
-            BARKLN("comment", CYAN);
+            //BARKLN("comment", CYAN);
         }
         else {
             /* TODO: complain!  getting here means a parse error */
@@ -140,25 +134,28 @@ TokenList tokenize(StringList const* lines)
 
     FOR (n, 0, strl_len(lines)) {
         String const* ln = strl_getref(lines, n);
-        BARKLN("line %d (%s)" _W_ n _W_ ln->raw.data, BLUE);
+        //BARKLN("line %d (%s)" _W_ n _W_ ln->raw.data, BLUE);
 
         int indent = get_indent(ln);
-        BARKLN("indentation is %d" _W_ indent, CYAN);
+        //BARKLN("indentation is %d" _W_ indent, CYAN);
         if ( indent == str_len(ln) ) {
-            BARKLN("BLANK LINE", CYAN);
+            //BARKLN("BLANK LINE", CYAN);
             continue;
         }
+
+        // TODO : check here for uninteresting (just empty/whitespace/comment) line; if so, don't emit
 
         switch ( COMPARE(indent, *il_top(&indent_stack)) ) {
           break; case GT:
             il_push(&indent_stack, indent);
             strl_push(&tl, str_init_as(INDENT));
-            BARKLN("INDENT to %d\n" _W_ indent, CYAN);
+            //BARKLN("INDENT to %d\n" _W_ indent, CYAN);
           break; case EQ:
+            strl_push(&tl, str_init_as(NEWLINE));
           break; case LT:
             while ( indent < *il_top(&indent_stack) ) {
                 il_pop(&indent_stack);
-                BARKLN("DEDENT to %d\n" _W_ indent, CYAN);
+                //BARKLN("DEDENT to %d\n" _W_ indent, CYAN);
                 strl_push(&tl, str_init_as(UNINDENT));
             }
         }
@@ -200,58 +197,4 @@ StringList lines_of(CString text)
     str_free(&s);
 
     return lines;
-}
-
-
-int main()
-{
-    DEFAULT_COLOR();
-    BARKLN("hi!", CYAN);
-
-    String s = str_init_as(
-      "-- this is a comment, then a blank line                      \n"
-      "                                                             \n"
-      "my_identifier:MyTypeName                                     \n"
-      "                                                             \n"
-      "indentation_test                                             \n"
-      "  inside_block                                               \n"
-      "    super_inner                                              \n"
-      "  inside_block                                               \n"
-      "    super_inner                                              \n"
-      "                                                             \n"
-      "outside_block                                                \n"
-    );
-    //str_print(&s);
-    //printf("\n");
-
-    StringList lines;
-    StringList tokens;
-    {
-        BARKLN("[A]", BLUE);
-        lines = lines_of(s.raw.data);
-        BARKLN("[B]", BLUE);
-        tokens = tokenize(&lines);
-        BARKLN("[C]", BLUE);
-
-        int col=0;
-        for (int i=0; i!=tokens.len; ++i) {
-            CString ss = tokens.data[i].raw.data;
-            int del = cstr_len(ss);
-            col += cstr_len("[  ]")+del;
-            if ( col >= 80 ) { printf("\n"); col = del; }
-            BARK("[ ", WHITE);
-            BARK("%s" _W_ ss, PURPLE);
-            BARK("[ ", WHITE);
-        }
-        printf("\n");
-        BARKLN("[D]", BLUE);
-    }
-    while (strl_len(&tokens)) { str_free(strl_pop(&tokens)); }
-    strl_free(&tokens);
-    while (strl_len(&lines)) { str_free(strl_pop(&lines)); }
-    strl_free(&lines);
-
-    // TODO: fix "unindent" leak
-    str_free(&s);
-    BARKLN("bye!", CYAN);
 }

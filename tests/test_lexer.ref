@@ -1,0 +1,26 @@
+hi!
+-- this is a comment, then a blank line                      
+                                                             
+my_identifier:MyTypeName                                     
+                                                             
+indentation_test                                             
+  inside_block_the_first                                     
+    super_inner                                              
+  more_body                                                  
+  ! body ( func arg arg ) . superfunc                        
+  inside_block_the_second                                    
+    super_inner                                              
+                                                             
+outside_block                                                
+
+[A]
+[B]
+[C]
+[ {-NEWLINE-} ][ {-NEWLINE-} ][ my_identifier ][ : ][ MyTypeName ]
+[ {-NEWLINE-} ][ indentation_test ][ {-INDENT-} ][ inside_block_the_first ]
+[ {-INDENT-} ][ super_inner ][ {-DEDENT-} ][ more_body ][ {-NEWLINE-} ][ ! ]
+[ body ][ ( ][ func ][ arg ][ arg ][ ) ][ . ][ superfunc ][ {-NEWLINE-} ]
+[ inside_block_the_second ][ {-INDENT-} ][ super_inner ][ {-DEDENT-} ]
+[ {-DEDENT-} ][ outside_block ]
+[D]
+bye!

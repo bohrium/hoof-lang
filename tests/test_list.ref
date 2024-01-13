@@ -1,6 +1,6 @@
 hi!
 
-#SAFE CORRECTNESS
+# Safe Correctness
 top  val NULL ... len 0 cap 2
 push val 1 ... len 1 cap 2
 top  val 1 ... len 1 cap 2
@@ -74,7 +74,7 @@ pop val 5 ... len 2 cap 17
 pop val 3 ... len 1 cap 17
 pop val 1 ... len 0 cap 17
 
-#UNSAFE CORRECTNESS
+# Unsafe Correctness
 top ... is empty! ... len 0 cap 6
 push val 1 ... len 1 cap 6
 top  val 1 ... len 1 cap 6
@@ -124,20 +124,20 @@ pop ... is empty! ... len 0 cap 11
 pop ... is empty! ... len 0 cap 11
 pop ... is empty! ... len 0 cap 11
 
-#POLY CORRECTNESS
+# Poly Correctness
 sum is 8258350
 
-#UNSAFE SPEED
+# Unsafe Speed
 [[TIME]] pushing 	 took 0.030 seconds
 [[TIME]] getting 	 took 0.027 seconds
 sum is 256447232
 
-#SAFE SPEED
+# Safe Speed
 [[TIME]] pushing 	 took 0.038 seconds
 [[TIME]] getting 	 took 0.027 seconds
 sum is 256447232
 
-#RESIZE SPEED
+# Resize Speed
 [[TIME]] resizing 	 took 0.026 seconds
 
 bye!

@@ -2,8 +2,9 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-#include "../cstring.c"
-#include "../string.c"
+#include "../cstring.h"
+#include "../rawstring.h"
+#include "../string.h"
 
 #define CHECK_MATCH(S,I,P,A)                        \
     {                                               \
@@ -13,8 +14,17 @@
                 (mm ? "yes" : "no"));               \
     }
 
-int main()
+int main(int argc, char const* const* argv)
 {
+    if ( argc>=2 ) {
+        BREAKBLOCK {
+            if ( argc!=2 ) { BARKLN("expected 1 arg", RED); return -1; }
+            if ( cstr_eq(argv[1], "color"   ) ) { USECOLOR = 1; break; }
+            if ( cstr_eq(argv[1], "no-color") ) { USECOLOR = 0; break; }
+            BARKLN("arg must be `color` or `no-color`", RED); return -1;
+        }
+    }
+
     printf("hi!\n");
 
     String s = str_init_as("woah ");

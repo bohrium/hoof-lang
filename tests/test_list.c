@@ -2,7 +2,10 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-#include "../list.c"
+#include "../preprocessor_tricks.h"
+
+#include "../list.h"
+#include "../cstring.h"
 
 #define PRINT_LIST_NUMS(LIST) \
     printf(" ... len %d cap %d\n", LIST.len, LIST.cap);
@@ -15,39 +18,48 @@ void test_push_speed( void (*my_pusher)(IntList*, int) );
 void test_getref_speed( int* (*my_getter)(IntList const*, int) );
 void test_resize_speed();
 
-int main()
+int main(int argc, char const* const* argv)
 {
-    printf("hi!\n");
+    if ( argc>=2 ) {
+        BREAKBLOCK {
+            if ( argc!=2 ) { BARKLN("expected 1 arg", RED); return -1; }
+            if ( cstr_eq(argv[1], "color"   ) ) { USECOLOR = 1; break; }
+            if ( cstr_eq(argv[1], "no-color") ) { USECOLOR = 0; break; }
+            BARKLN("arg must be `color` or `no-color`", RED); return -1;
+        }
+    }
+
+    BARKLN("hi!", CYAN);
 
     { /* CORRECTNESS TESTS */
-        printf("\n#SAFE CORRECTNESS\n");
+        BARKLN("\n# Safe Correctness", BLUE);
         test_safe_operations();
 
         // Proposition P: "Safe operations are defined in terms of unsafe ones".
         // Unless I forgot to maintain P, P is still true, so the previous test
         // also tests unsafe operations.  But we of course want to test the
         // interface without such assumptions about implementations.
-        printf("\n#UNSAFE CORRECTNESS\n");
+        BARKLN("\n# Unsafe Correctness", BLUE);
         test_unsafe_operations();
 
-        printf("\n#POLY CORRECTNESS\n");
+        BARKLN("\n# Poly Correctness", BLUE);
         test_poly_nested();
     }
 
     { /* SPEED TESTS */
-        printf("\n#UNSAFE SPEED\n");
+        BARKLN("\n# Unsafe Speed", BLUE);
         test_push_speed(il_push_unsafe);
         test_getref_speed(il_getref_unsafe);
 
-        printf("\n#SAFE SPEED\n");
+        BARKLN("\n# Safe Speed", BLUE);
         test_push_speed(il_push);
         test_getref_speed(il_getref);
 
-        printf("\n#RESIZE SPEED\n");
+        BARKLN("\n# Resize Speed", BLUE);
         test_resize_speed();
     }
 
-    printf("\nbye!\n");
+    BARKLN("\nbye!", CYAN);
     return 0;
 }
 

@@ -3,6 +3,8 @@
 
 #include "preprocessor_tricks.h"
 
+//#include "list.template.h"
+
 #define ELT ELEMENT_TYPE
 #define LMP LIST_METHOD_PREFIX
 #define LTN LIST_TYPE_NAME
@@ -28,49 +30,6 @@
 
 
 /* ========================================================================= */
-
-
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* ~  Interface  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-/* -----  pre-requisites  -------------------------------------------------- */
-
-// ATTN the following macros must already be defined
-#if    ! defined (ELEMENT_TYPE      ) /* type  */  \
-    || ! defined (LIST_TYPE_NAME    ) /* ident */  \
-    || ! defined (LIST_METHOD_PREFIX) /* ident */  \
-    || ! defined (EXPAND_FACTOR     ) /* float */
-  #error
-#endif
-
-/* -----  type and method declarations  ------------------------------------ */
-
-typedef struct LTN {
-    ELT* data;
-    int len;
-    int cap;
-} LTN;
-
-// memory management:
-LTN     _INIT       (int cap);
-void    _FREE       (LTN* list);
-void    _RESIZE     (LTN* list, int cap);
-int     _LEN        (LTN const* list);
-bool    _IS_EMPTY   (LTN const* list);
-bool    _IS_FULL    (LTN const* list);
-
-// unsafe accessors (no expanding, no bounds checks):
-void    _PUSH_UNSAFE    (LTN* list, ELT el);
-ELT*    _POP_UNSAFE     (LTN* list);
-ELT*    _TOP_UNSAFE     (LTN const* list);
-ELT*    _GETREF_UNSAFE  (LTN const* list, int index);
-
-// safe accessors (expand or return NULL as needed)
-void    _PUSH   (LTN* list, ELT el);
-ELT*    _POP    (LTN* list);
-ELT*    _TOP    (LTN const* list);
-ELT*    _GETREF (LTN const* list, int index);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~  Implementation  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

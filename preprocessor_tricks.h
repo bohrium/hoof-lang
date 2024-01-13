@@ -2,7 +2,8 @@
 #define PP_TRICKS
 
 #ifndef TRIVIAL_FUNC_DEFN
-void TRIVIAL_FUNC() {}
+#define TRIVIAL_FUNC_DEFN
+void TRIVIAL_FUNC();
 #define EXPECT_PARENS TRIVIAL_FUNC
 #endif//TRIVIAL_FUNC_DEFN
 
@@ -26,6 +27,12 @@ void TRIVIAL_FUNC() {}
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~  Control Flow Idiom Shorthands  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+typedef enum {
+    LT, EQ, GT
+} COMPARE_T;
+#define COMPARE(X,Y) (((X)<(Y)) ? LT : ((X)>(Y)) ? GT : EQ)
+
+
 #define FOR(VAR, START, END) for (int VAR=START; VAR!=END; ++VAR)
 
 #define BREAKBLOCK switch (0) default:
@@ -47,14 +54,16 @@ void TRIVIAL_FUNC() {}
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~  Color Printing  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define BLACK       printf("\033[30m"); EXPECT_PARENS
-#define RED         printf("\033[31m"); EXPECT_PARENS
-#define GREEN       printf("\033[32m"); EXPECT_PARENS
-#define YELLOW      printf("\033[33m"); EXPECT_PARENS
-#define BLUE        printf("\033[34m"); EXPECT_PARENS
-#define PURPLE      printf("\033[35m"); EXPECT_PARENS
-#define CYAN        printf("\033[36m"); EXPECT_PARENS
-#define WHITE       printf("\033[37m"); EXPECT_PARENS
+extern int USECOLOR;
+
+#define BLACK       if (USECOLOR) { printf("\033[30m"); } EXPECT_PARENS
+#define RED         if (USECOLOR) { printf("\033[31m"); } EXPECT_PARENS
+#define GREEN       if (USECOLOR) { printf("\033[32m"); } EXPECT_PARENS
+#define YELLOW      if (USECOLOR) { printf("\033[33m"); } EXPECT_PARENS
+#define BLUE        if (USECOLOR) { printf("\033[34m"); } EXPECT_PARENS
+#define PURPLE      if (USECOLOR) { printf("\033[35m"); } EXPECT_PARENS
+#define CYAN        if (USECOLOR) { printf("\033[36m"); } EXPECT_PARENS
+#define WHITE       if (USECOLOR) { printf("\033[37m"); } EXPECT_PARENS
 
 #define DEFAULT_COLOR       CYAN
 
