@@ -1,26 +1,77 @@
 hi!
--- this is a comment, then a blank line                      
-                                                             
-my_identifier:MyTypeName                                     
-                                                             
-indentation_test                                             
-  inside_block_the_first                                     
-    super_inner                                              
-  more_body                                                  
-  ! body ( func arg arg ) . superfunc                        
-  inside_block_the_second                                    
-    super_inner                                              
-                                                             
-outside_block                                                
 
-[A]
-[B]
-[C]
+# Okay Lexing
+-- this is a comment, then a blank line                      
+my_identifier:MyTypeName                                     
+indentation_test                                             
+  ! body ( func arg arg ) . superfunc                        
+
 [ {-NEWLINE-} ][ {-NEWLINE-} ][ my_identifier ][ : ][ MyTypeName ]
-[ {-NEWLINE-} ][ indentation_test ][ {-INDENT-} ][ inside_block_the_first ]
-[ {-INDENT-} ][ super_inner ][ {-DEDENT-} ][ more_body ][ {-NEWLINE-} ][ ! ]
-[ body ][ ( ][ func ][ arg ][ arg ][ ) ][ . ][ superfunc ][ {-NEWLINE-} ]
-[ inside_block_the_second ][ {-INDENT-} ][ super_inner ][ {-DEDENT-} ]
-[ {-DEDENT-} ][ outside_block ]
-[D]
+[ {-NEWLINE-} ][ indentation_test ][ {-INDENT-} ][ ! ][ body ][ ( ][ func ]
+[ arg ][ arg ][ ) ][ . ][ superfunc ][ {-DEDENT-} ]
+
+# Indents
+                     
+moo0                 
+  goo1 goo1          
+    gai2 gai2 gai2   
+  goo1               
+  goo-start          
+                     
+
+  goo-end            
+  --various gaps
+    gai2             
+      pan3           
+                     
+end                  
+                     
+
+[ {-NEWLINE-} ][ moo0 ][ {-INDENT-} ][ goo1 ][ goo1 ][ {-INDENT-} ][ gai2 ]
+[ gai2 ][ gai2 ][ {-DEDENT-} ][ goo1 ][ {-NEWLINE-} ][ goo-start ]
+[ {-NEWLINE-} ][ goo-end ][ {-NEWLINE-} ][ {-INDENT-} ][ gai2 ][ {-INDENT-} ]
+[ pan3 ][ {-DEDENT-} ][ {-DEDENT-} ][ {-DEDENT-} ][ end ]
+
+# Symbols
+ *{![[<<a=b>>]]};;: 
+
+[ {-INDENT-} ][ * ][ { ][ ! ][ [[ ][ << ][ a ][ = ][ b ][ >> ][ ]] ][ } ][ ; ]
+[ ; ][ : ][ {-DEDENT-} ]
+
+# Bad Identifier Names
+ -google-fruit --bad                                         
+ _google_fruit --bad                                         
+ google-fruit  --okay                                        
+ google-fruit- --bad                                         
+ google_fruit  --okay                                        
+ google_fruit_ --bad                                         
+ googleFruit   --okay                                        
+ googleFruit69 --okay                                        
+ 69googleFruit --bad                                         
+
+ at line 0 : unable to match : 
+    [-google-fruit --bad                                         ]
+ at line 1 : unable to match : 
+    [_google_fruit --bad                                         ]
+ at line 3 : unable to match : 
+    [google-fruit- --bad                                         ]
+ at line 5 : unable to match : 
+    [google_fruit_ --bad                                         ]
+ at line 8 : unable to match : 
+    [69googleFruit --bad                                         ]
+[ {-INDENT-} ][ {-NEWLINE-} ][ {-NEWLINE-} ][ google-fruit ][ {-NEWLINE-} ]
+[ {-NEWLINE-} ][ google_fruit ][ {-NEWLINE-} ][ {-NEWLINE-} ][ googleFruit ]
+[ {-NEWLINE-} ][ googleFruit69 ][ {-NEWLINE-} ][ {-DEDENT-} ]
+ CStr_ing    --okay      
+ CString     --okay      
+ CString_    --bad       
+ MooMitten   --okay      
+ _CString    --bad       
+
+ at line 2 : unable to match : 
+    [CString_    --bad       ]
+ at line 4 : unable to match : 
+    [_CString    --bad       ]
+[ {-INDENT-} ][ CStr_ing ][ {-NEWLINE-} ][ CString ][ {-NEWLINE-} ]
+[ {-NEWLINE-} ][ MooMitten ][ {-NEWLINE-} ][ {-DEDENT-} ]
 bye!

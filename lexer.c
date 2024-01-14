@@ -72,6 +72,7 @@ int try_match_punct(CString cp)
 
     __MATCH("*");
     __MATCH("!");
+    __MATCH(";");
     __MATCH("{");           __MATCH("}");
 
     __MATCH(":");
@@ -89,6 +90,8 @@ int try_match_comment(CString cp)
     if ( cstr_match_substring(cp, "--") ) { return cstr_len(cp); }
     return 0;   /* no symbol recognized!  */
 }
+
+int LINE_NUMBER;
 
 int add_token(StringList* token_list, String const* line, int index)
 // assumes lines null terminated
@@ -111,8 +114,11 @@ int add_token(StringList* token_list, String const* line, int index)
         }
         else {
             /* TODO: complain!  getting here means a parse error */
-            BARKLN("UNABLE TO MATCH", RED);
-            BARKLN("    [%s]" _W_ line->raw.data + index, RED);
+            BARKLN(" at line %d : unable to match : " _W_ LINE_NUMBER, RED);
+            BARK("    ", WHITE);
+            BARK("[", WHITE);
+            BARK("%s" _W_ line->raw.data + index, BLUE);
+            BARK("]\n", WHITE);
         }
         return -1;
     }
@@ -133,6 +139,8 @@ TokenList tokenize(StringList const* lines)
     il_push(&indent_stack, 0);
 
     FOR (n, 0, strl_len(lines)) {
+        LINE_NUMBER = n;
+
         String const* ln = strl_getref(lines, n);
         //BARKLN("line %d (%s)" _W_ n _W_ ln->raw.data, BLUE);
 
@@ -166,6 +174,13 @@ TokenList tokenize(StringList const* lines)
             if ( tt==-1 ) { break; }
             d = tt;
         }
+    }
+
+    int indent = 0;
+    while ( indent < *il_top(&indent_stack) ) {
+        il_pop(&indent_stack);
+        //BARKLN("DEDENT to %d\n" _W_ indent, CYAN);
+        strl_push(&tl, str_init_as(UNINDENT));
     }
 
     il_free(&indent_stack);
